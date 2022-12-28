@@ -78,10 +78,15 @@ function addFavoriteUser(dataAddUser) {
             if(dataAddUser === undefined) {
                 // favoritesWidget.setMessage(isSuccess, message);
             } else {
-                favoritesWidget.clearTable();
-                favoritesWidget.fillTable(dataAddUser);
-                moneyManager.updateUsersList(dataAddUser);
-
+                ApiConnector.getFavorites((favorites) =>
+                    {
+                        if(favorites.success) {
+                            favoritesWidget.clearTable();
+                            favoritesWidget.fillTable(favorites.data);
+                            moneyManager.updateUsersList(favorites.data);
+                        }
+                    } 
+                );
                 // favoritesWidget.setMessage(isSuccess, message);
             }
         }
