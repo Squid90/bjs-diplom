@@ -37,24 +37,40 @@ setInterval(() => resetRates(), 60000);
 
 const moneyManager = new MoneyManager();
 
-// moneyManager.addMoneyCallback = addMoneyRequest(dataAdd);
+moneyManager.addMoneyCallback = (data) => ApiConnector.addMoney(data, () =>
+    {
+        if(data.currency === "" || data.amount === "") {
+            //moneyManager.setMessage(isSuccess, message);
+        } else {
+            ApiConnector.current((user) => ProfileWidget.showProfile(user.data));
+            //location.reload(); При первом нажатии на кнопку выдает ошибку и данные в профиле не отображаются.
+            //При повторном нажатии страниа нормально обновляется и се даные отображаются корректно.
+        }
+    }
+);
 
-// function addMoneyRequest(dataAdd) {
-//     ApiConnector.addMoney(dataAdd, (f) => console.log(f));
-// }
+moneyManager.conversionMoneyCallback = (data) => ApiConnector.convertMoney(data, () =>
+    {
+        if(data.fromAmount === "" || data.fromCurrency === "" || data.targetCurrency === "") {
+            //moneyManager.setMessage(isSuccess, message);
+        } else {
+            ApiConnector.current((user) => ProfileWidget.showProfile(user.data));
+            //location.reload();
+        }
+    }
+);
 
-// moneyManager.conversionMoneyCallback = conversionMoney(dataConversion);
 
-// function conversionMoney(dataConversion) {
-//     ApiConnector.convertMoney(dataConversion, (f) => console.log(f));
-// }
-
-// moneyManager.sendMoneyCallback = sendMoney(dataSend);
-
-// function sendMoney(dataSend) {
-//     ApiConnector.transferMoney(dataSend, (f) => console.log(f));
-// }
-
+moneyManager.sendMoneyCallback = (data) => ApiConnector.transferMoney(data, () =>
+    {
+        if(data.amount === "" || data.currency === "" || data.to === "") {
+            //moneyManager.setMessage(isSuccess, message);
+        } else {
+            ApiConnector.current((user) => ProfileWidget.showProfile(user.data));
+            //location.reload();
+        }
+    }
+);
 
 
 const favoritesWidget = new FavoritesWidget();
@@ -70,25 +86,31 @@ ApiConnector.getFavorites((favorites) =>
 );
 
 
-favoritesWidget.addUserCallback = (dataAddUser) => addFavoriteUser(dataAddUser);
-
-function addFavoriteUser(dataAddUser) {
-    ApiConnector.addUserToFavorites(dataAddUser, () => 
-        {
-            if(dataAddUser === undefined) {
-                // favoritesWidget.setMessage(isSuccess, message);
-            } else {
-                ApiConnector.getFavorites((favorites) =>
-                    {
-                        if(favorites.success) {
-                            favoritesWidget.clearTable();
-                            favoritesWidget.fillTable(favorites.data);
-                            moneyManager.updateUsersList(favorites.data);
-                        }
-                    } 
-                );
-                // favoritesWidget.setMessage(isSuccess, message);
-            }
+favoritesWidget.addUserCallback = (data) => ApiConnector.addUserToFavorites(data, () => 
+    {
+        if(data.id === "" || data.name === "") {
+            //favoritesWidget.favoritesMessageBox.setMessage(isSuccess, message);
+        } else {
+            ApiConnector.getFavorites((favorites) =>
+                {
+                    favoritesWidget.clearTable();
+                    favoritesWidget.fillTable(favorites.data)
+                    moneyManager.updateUsersList(favorites.data);
+                }
+            )
         }
-    )
-}
+    } 
+);
+
+
+favoritesWidget.removeUserCallback = (data) => ApiConnector.removeUserFromFavorites(data, () =>
+    {
+        ApiConnector.getFavorites((favorites) =>
+            {
+                favoritesWidget.clearTable();
+                favoritesWidget.fillTable(favorites.data)
+                moneyManager.updateUsersList(favorites.data);
+            }
+        )
+    }
+);
