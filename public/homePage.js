@@ -36,38 +36,36 @@ setInterval(() => resetRates(), 60000);
 
 
 const moneyManager = new MoneyManager();
-
-moneyManager.addMoneyCallback = (data) => ApiConnector.addMoney(data, () =>
+moneyManager.addMoneyCallback = (data) => ApiConnector.addMoney(data, (response) =>
     {
-        if(data.currency === "" || data.amount === "") {
-            //moneyManager.setMessage(isSuccess, message);
+        if(response.success) {
+            ProfileWidget.showProfile(response.data);
+            moneyManager.setMessage(response.success, "Средства зачислены");
         } else {
-            ApiConnector.current((user) => ProfileWidget.showProfile(user.data));
-            //location.reload(); При первом нажатии на кнопку выдает ошибку и данные в профиле не отображаются.
-            //При повторном нажатии страниа нормально обновляется и се даные отображаются корректно.
+            moneyManager.setMessage(response.error, "Ошибка пополнения");
         }
     }
 );
 
-moneyManager.conversionMoneyCallback = (data) => ApiConnector.convertMoney(data, () =>
+moneyManager.conversionMoneyCallback = (data) => ApiConnector.convertMoney(data, (response) =>
     {
-        if(data.fromAmount === "" || data.fromCurrency === "" || data.targetCurrency === "") {
-            //moneyManager.setMessage(isSuccess, message);
+        if(response.success) {
+            ProfileWidget.showProfile(response.data);
+            moneyManager.setMessage(response.success, "Конвертация успешна");
         } else {
-            ApiConnector.current((user) => ProfileWidget.showProfile(user.data));
-            //location.reload();
+            moneyManager.setMessage(response.error, "Ошибка конвертации");
         }
     }
 );
 
 
-moneyManager.sendMoneyCallback = (data) => ApiConnector.transferMoney(data, () =>
+moneyManager.sendMoneyCallback = (data) => ApiConnector.transferMoney(data, (response) =>
     {
-        if(data.amount === "" || data.currency === "" || data.to === "") {
-            //moneyManager.setMessage(isSuccess, message);
+        if(response.success) {
+            ProfileWidget.showProfile(response.data);
+            moneyManager.setMessage(response.success, "Перевод выполнен успешно");
         } else {
-            ApiConnector.current((user) => ProfileWidget.showProfile(user.data));
-            //location.reload();
+            moneyManager.setMessage(response.error, "Ошибка перевода");
         }
     }
 );
@@ -86,31 +84,29 @@ ApiConnector.getFavorites((favorites) =>
 );
 
 
-favoritesWidget.addUserCallback = (data) => ApiConnector.addUserToFavorites(data, () => 
+favoritesWidget.addUserCallback = (data) => ApiConnector.addUserToFavorites(data, (response) => 
     {
-        if(data.id === "" || data.name === "") {
-            //favoritesWidget.favoritesMessageBox.setMessage(isSuccess, message);
+        if(response.success) {
+            favoritesWidget.clearTable();
+            favoritesWidget.fillTable(response.data);
+            moneyManager.updateUsersList(response.data);
+            favoritesWidget.setMessage(response.success, "Пользователь добавлен");
         } else {
-            ApiConnector.getFavorites((favorites) =>
-                {
-                    favoritesWidget.clearTable();
-                    favoritesWidget.fillTable(favorites.data)
-                    moneyManager.updateUsersList(favorites.data);
-                }
-            )
+            favoritesWidget.setMessage(response.error, "Ошибка добавления");
         }
     } 
 );
 
 
-favoritesWidget.removeUserCallback = (data) => ApiConnector.removeUserFromFavorites(data, () =>
+favoritesWidget.removeUserCallback = (data) => ApiConnector.removeUserFromFavorites(data, (response) =>
     {
-        ApiConnector.getFavorites((favorites) =>
-            {
-                favoritesWidget.clearTable();
-                favoritesWidget.fillTable(favorites.data)
-                moneyManager.updateUsersList(favorites.data);
-            }
-        )
+        if(response.success){
+            favoritesWidget.clearTable();
+            favoritesWidget.fillTable(response.data);
+            moneyManager.updateUsersList(response.data);
+            favoritesWidget.setMessage(response.success, "Пользователь удален");
+        } else {
+            favoritesWidget.setMessage(response.error, "Ошибка удаления");
+        }
     }
 );
